@@ -14,7 +14,7 @@ CREATE TABLE `access_token` (
     $wxId = 'wx405ca5b18c8da110';
     $wxSecret = 'a6ead8efa94186d55e57ce7d87a25590';
 	get_code(20);//使用方法
-    public 	function get_code($id)
+    public function get_code($id)
     {
 		//获取token
         $getToken = $this->getToken($wxId,$wxSecret);
