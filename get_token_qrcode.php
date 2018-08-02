@@ -16,9 +16,9 @@ CREATE TABLE `access_token` (
     get_code(20);//使用方法
     public function get_code($id)
     {
-		//获取token
+	//获取token
         $getToken = $this->getToken($wxId,$wxSecret);
-         // get请求
+        // get请求
         $result = file_get_contents($getToken);
         // json转成数组
         $arrResult = json_decode($result, TRUE);
