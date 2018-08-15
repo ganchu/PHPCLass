@@ -8,7 +8,7 @@ function task() {
         curl_setopt($curl, CURLOPT_URL, $url); 
         curl_setopt($curl, CURLOPT_BINARYTRANSFER, true);  
         curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
-        curl_setopt($curl, CURLOPT_FOLLOWLOCATION, 1);
+        curl_setopt($curl, CURLOPT_FOLLOWLOCATION, 1);							//如果我报错，请把参数1改0
         curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 2);
         curl_setopt($curl, CURLOPT_USERAGENT,  "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:12.0) Gecko/20100101 Firefox/12.0");      //模拟浏览器类型
