@@ -3,7 +3,7 @@
 //网上找不到完全OK的功能，所以自己写了个新的
 //更新日志：
 //20180711添加获取手机品牌+微信版本+网络类型
-//20180709修改可以兼容本地+服务器正常显示ip
+//20180706修改可以兼容本地+服务器正常显示ip
 //201805取得客户端的ip、地理位置、浏览器、以及访问设备
 
 header("content-type:text/html;charset=utf-8");
@@ -296,6 +296,7 @@ date_default_timezone_set("PRC");//设置时区
     //2018711新增获取手机品牌，网络，微信版本
     $message .= "|".GetPhone().NetWork().Wechat()."\r\n";
     echo $message;//113.70.47.90|广东佛山电信|浏览器语言:简体中文|系统:Windows 7|浏览器为Chrome|
+    echo "<br>今天访问<a href='http://wymlw.cn/logs/log_".date("Ymd", time()).".txt'>记录</a>";
  
     class Log {
 
