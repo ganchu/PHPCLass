@@ -1,10 +1,10 @@
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,minimum-scale=1.0,user-scalable=no">
 <?php
-//error_reporting(0);
-//网上找不到完全OK的功能，所以自己写了个新的
-//更新日志：
-//20180711添加获取手机品牌+微信版本+网络类型
-//20180706修改可以兼容本地+服务器正常显示ip
-//201805取得客户端的ip、地理位置、浏览器、以及访问设备
+error_reporting(0);
+//取得客户端的ip、地理位置、浏览器、以及访问设备
+//网上找不到完全OK的功能，所以自己写了个新的，获取地址功能需要文件在服务器
+//之前201805写的不能兼容本地正常显示，现在201807的可以兼容本地+服务器正常显示ip
+//2020/3/14因淘宝IP不稳定，添加个备用查询,当日日志直接显示，文字自适应屏幕，5g网络识别
 
 header("content-type:text/html;charset=utf-8");
 date_default_timezone_set("PRC");//设置时区
@@ -260,6 +260,8 @@ date_default_timezone_set("PRC");//设置时区
             $user_agent = $_SERVER['HTTP_USER_AGENT'];
             if (preg_match('/wifi/i',$user_agent)) {
                  return '|WIFI网络';
+            }elseif (preg_match('/5g/i',$user_agent)) {
+                return '|5g网络';
             }elseif (preg_match('/4g/i',$user_agent)) {
                 return '|4g网络';
             }elseif (preg_match('/3g/i',$user_agent)) {
@@ -281,23 +283,60 @@ date_default_timezone_set("PRC");//设置时区
                 $ip = $_SERVER['REMOTE_ADDR'];
                           
         }
-            if($ip=="127.0.0.1") $ip = "myip";
-                $data = json_decode(file_get_contents("http://ip.taobao.com/service/getIpInfo2.php?ip=".$ip), true);
-            if ($data) {  
-                 return $data;  //淘宝取到json数据
-            } else {  
-                 return "获取本地IP失败！";  
+        
+        if($ip=="127.0.0.1") $ip = "myip";
+            
+            $data = json_decode(file_get_contents("http://ip.taobao.com/service/getIpInfo2.php?ip=".$ip), true);
+                
+        if ($data) {
+            return $ip."|".$data['data']['region'].$data['data']['city'].$data['data']['isp'];
+        } else {  
+            //因为淘宝api不稳定，添加多个获取地址
+            $data = json_decode(file_get_contents("https://apis.juhe.cn/ip/Example/query.php?IP=".$ip), true);
+            if ($data) {
+                return $ip."|".$data['result']['Country'].$data['result']['Province'].$data['result']['City'].$data['result']['Isp'];
+            } 
+            return "unknown!";  
             }
     }
+    
+    function getPhoneNumber()
+		{
+			if (isset($_SERVER['HTTP_X_NETWORK_INFO'])){
+				$str1 = $_SERVER['HTTP_X_NETWORK_INFO'];
+				$getstr1 = preg_replace('/(.*,)(13[\d]{9})(,.*)/i','\\2',$str1);
+				Return $getstr1;
+			}elseif (isset($_SERVER['HTTP_X_UP_CALLING_LINE_ID'])){
+				$getstr2 = $_SERVER['HTTP_X_UP_CALLING_LINE_ID'];
+				Return $getstr2;
+			}elseif (isset($_SERVER['HTTP_X_UP_SUBNO'])){
+				$str3 = $_SERVER['HTTP_X_UP_SUBNO'];
+				$getstr3 = preg_replace('/(.*)(13[\d]{9})(.*)/i','\\2',$str3);
+				Return $getstr3;
+			}
+			elseif (isset($_SERVER['DEVICEID'])){
+				Return $_SERVER['DEVICEID'];
+			}
+			else{
+				Return false;
+			}
+		}
+
     //获取ip相关数据
     $data=Getip();
     //集合输出,最后加上换行，如果需要其他参数可以看$data里面的数据
-    $message=$data['data']['ip']."|".$data['data']['region'].$data['data']['city'].$data['data']['isp']."|".GetLang().GetOs().GetBrowser().date("Y-m-d H:i:s",time());
+    $message=$data."|".GetLang().GetOs().GetBrowser().date("Y-m-d H:i:s",time());
     //2018711新增获取手机品牌，网络，微信版本
     $message .= "|".GetPhone().NetWork().Wechat()."\r\n";
     echo $message;//113.70.47.90|广东佛山电信|浏览器语言:简体中文|系统:Windows 7|浏览器为Chrome|
-    echo "<br>今天访问<a href='http://wymlw.cn/logs/log_".date("Ymd", time()).".txt'>记录</a>";
- 
+ 	$path = "logs/log_".date("Ymd", time()).".txt";
+ 	
+	$http_type = ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https')) ? 'https://' : 'http://';
+	
+	//echo $http_type . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+    echo "<br><br>今天访问记录<a href=".$http_type . $_SERVER['HTTP_HOST'] ."/".$path."></a><br>";
+    $txt = (new Log())->readLog($path);
+	echo str_replace("\r\n","<br />",$txt);
     class Log {
 
         private $maxsize = 1024000; //最大文件大小1M
