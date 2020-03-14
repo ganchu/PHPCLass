@@ -1,7 +1,7 @@
 <?php
 task();
 function task() {
-        $url = "http://wymlw.cn/getip.php";
+        $url = "http://www.wymlw.cn/getip.php";
         $headers = randIp();
         var_dump($headers);
         $curl = curl_init();
