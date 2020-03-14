@@ -2,7 +2,7 @@
 >汇集自己的类或者优化过的php类
 
 getip.php获取用户真实ip/ip位置/设备系统/浏览器语言/浏览器类型--用于登录，访问记录/日志
-测试地址：http://wymlw.cn/getip.php
+测试地址：http://www.wymlw.cn/getip.php
 
 
 更新日志：
@@ -21,4 +21,4 @@ phpmail发送邮件
 
 cfip.php伪装ip
 
-测试地址：http://wymlw.cn/cfip.php
+测试地址：http://www.wymlw.cn/cfip.php
